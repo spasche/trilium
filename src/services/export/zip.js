@@ -76,12 +76,17 @@ async function exportToZip(taskContext, branch, format, res, setHeaders = true) 
      */
     function getDataFileName(type, mime, baseFileName, existingFileNames) {
         let fileName = baseFileName.trim();
+        let existingExtension = path.extname(fileName).toLowerCase();
+        let baseName = path.basename(fileName, existingExtension);
+        let newExtension;
+
         if (fileName.length > 30) {
             fileName = fileName.substr(0, 30).trim();
         }
+        if (baseName.length > 30) {
+            baseName = baseName.substr(0, 30).trim();
+        }
 
-        let existingExtension = path.extname(fileName).toLowerCase();
-        let newExtension;
 
         // the following two are handled specifically since we always want to have these extensions no matter the automatic detection
         // and/or existing detected extensions in the note name
@@ -95,7 +100,7 @@ async function exportToZip(taskContext, branch, format, res, setHeaders = true) 
             newExtension = 'js';
         }
         else if (existingExtension.length > 0) { // if the page already has an extension, then we'll just keep it
-            newExtension = null;
+            newExtension = existingExtension;
         }
         else {
             if (mime?.toLowerCase()?.trim() === "image/jpg") {
@@ -107,10 +112,7 @@ async function exportToZip(taskContext, branch, format, res, setHeaders = true) 
             }
         }
 
-        // if the note is already named with the extension (e.g. "image.jpg"), then it's silly to append the exact same extension again
-        if (newExtension && existingExtension !== `.${newExtension.toLowerCase()}`) {
-            fileName += `.${newExtension}`;
-        }
+        fileName = `${baseName}${newExtension}`;
 
         return getUniqueFilename(existingFileNames, fileName);
     }
@@ -344,7 +346,7 @@ async function exportToZip(taskContext, branch, format, res, setHeaders = true) 
 <body>
   <div class="content">
       <h1 data-trilium-h1>${htmlTitle}</h1>
-      
+
       <div class="ck-content">${content}</div>
   </div>
 </body>
